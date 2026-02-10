@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <link rel="icon" type="image/x-icon" href="miisotype.ico">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>J. Larco | Data Analyst</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        accent: '#6366f1',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                    },
+                    animation: {
+                        'fade-in-up': 'fadeInUp 0.8s ease-out forwards',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-20px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at top right, #e0f2fe 0%, #ffffff 60%, #f0f9ff 100%);
+        }
+        .text-gradient {
+            background: linear-gradient(135deg, #0369a1 0%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans custom-scrollbar">
+
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 glass-card transition-all duration-300">
+        <nav class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <div class="flex items-center gap-2 z-50">
+                <div class="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-brand-200 flex-shrink-0">
+                    J
+                </div>
+                <span class="font-display font-bold text-lg md:text-xl tracking-tight text-brand-900 uppercase truncate">
+                    J. LARCO | ANALYST
+                </span>
+            </div>
+
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center gap-8 font-medium text-slate-600">
+                <a href="#about2" class="hover:text-brand-600 transition-colors">About</a>
+                <a href="#skills" class="hover:text-brand-600 transition-colors">Skills</a>
+                <a href="#projects" class="hover:text-brand-600 transition-colors">Projects</a>
+                <a href="mailto:juanlarco10102000@gmail.com" class="bg-brand-600 text-white px-5 py-2 rounded-full hover:bg-brand-700 transition-all shadow-md shadow-brand-100">Contact</a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-btn" class="md:hidden p-2 text-slate-600 focus:outline-none z-50">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </nav>
+
+        <!-- Mobile Menu Dropdown -->
+        <div id="mobile-menu" class="fixed inset-0 bg-white/95 backdrop-blur-xl z-40 transform translate-x-full transition-transform duration-300 md:hidden flex flex-col justify-center items-center space-y-8">
+            <a href="#about2" class="text-2xl font-bold text-slate-800" onclick="toggleMenu()">About</a>
+            <a href="#skills" class="text-2xl font-bold text-slate-800" onclick="toggleMenu()">Skills</a>
+            <a href="#projects" class="text-2xl font-bold text-slate-800" onclick="toggleMenu()">Projects</a>
+            <a href="mailto:juanlarco10102000@gmail.com" class="text-xl font-bold text-brand-600 bg-brand-50 px-8 py-3 rounded-full" onclick="toggleMenu()">Contact Me</a>
+        </div>
+    </header>
+
+    <main class="pt-20">
+        <!-- Hero Section -->
+        <!-- Added overflow-hidden to prevent horizontal scroll on mobile animations -->
+        <section id="about" class="hero-gradient min-h-[85vh] md:min-h-[90vh] flex items-center relative overflow-hidden px-6">
+            <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 lg:gap-20 items-center py-12 md:py-20">
+                
+                <!-- Text Content -->
+                <div class="space-y-6 md:space-y-8 animate-fade-in-up order-2 lg:order-1 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-100 text-brand-700 text-xs md:text-sm font-semibold">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                        </span>
+                        Available for New Projects
+                    </div>
+                    <!-- Responsive Text Sizing -->
+                    <h1 class="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight text-slate-900">
+                        Transforming Data into <span class="text-gradient">Actionable Insights.</span>
+                    </h1>
+                    
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+                        <a href="#projects" class="px-8 py-4 bg-slate-900 text-white rounded-xl font-bold shadow-xl hover:bg-slate-800 transition-all transform hover:-translate-y-1 text-center">View Projects</a>
+                        <a href="#skills" class="px-8 py-4 bg-white text-slate-900 border border-slate-200 rounded-xl font-bold shadow-sm hover:shadow-md transition-all transform hover:-translate-y-1 text-center">My Skills</a>
+                    </div>
+                </div>
+
+                <!-- 3D Image -->
+                <div class="relative flex justify-center items-center lg:justify-end order-1 lg:order-2">
+                    <div class="absolute inset-0 bg-brand-200 blur-[80px] md:blur-[100px] opacity-30 rounded-full animate-pulse"></div>
+                    <!-- Adjusted max-w for different screens to maintain ratio -->
+                    <div class="relative w-full max-w-[280px] sm:max-w-sm md:max-w-md animate-float">
+                        <div class="rounded-3xl overflow-hidden shadow-2xl border-4 md:border-8 border-white">
+                            <!-- Ensure you use the transparent PNG if possible -->
+                            <img src='main.png' alt="Analyst Profile" class="w-full h-auto object-cover">                        
+                        </div>
+                        
+                        <!-- Floating Badge -->
+                        <div class="absolute -bottom-6 -left-4 md:-left-12 glass-card p-4 md:p-6 rounded-2xl shadow-xl max-w-[200px] md:max-w-xs border border-white/50">
+                            <div class="flex items-center gap-3 md:gap-4">
+                                <div class="p-2 md:p-3 bg-brand-500 rounded-xl text-white">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 md:h-6 md:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] md:text-xs font-bold text-brand-600 uppercase tracking-wider">Expertise</p>
+                                    <p class="text-xs md:text-sm text-slate-600 font-medium leading-tight">Insight Generation Specialist</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Professional Summary -->
+        <section id="about2" class="bg-white py-16 px-6">
+            <div class="max-w-4xl mx-auto">
+                <div class="p-8 md:p-12 border-l-4 border-brand-500 bg-slate-50 rounded-r-3xl shadow-sm">
+                    <h3 class="font-display text-2xl font-bold mb-4 text-slate-800">Professional Summary</h3>
+                    <p class="text-base md:text-lg text-slate-600 italic leading-relaxed">
+                        "Data Analyst transforming complexity into clarity. With a toolkit featuring SQL, Python, and Power BI, I process and visualize data to drive business growth. My background in administrative operations allows me to uniquely understand stakeholder needs, translating financial and marketing metrics into tangible business strategies."
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Skills Section -->
+        <section id="skills" class="py-20 md:py-24 px-6 bg-slate-50">
+            <div class="max-w-7xl mx-auto">
+                <div class="text-center mb-16 space-y-4">
+                    <h2 class="font-display text-3xl md:text-5xl font-extrabold text-slate-900">Technical <span class="text-brand-600">Toolkit</span></h2>
+                    <p class="text-slate-500 max-w-2xl mx-auto text-base md:text-lg">A comprehensive set of tools and methodologies leveraged to extract value from raw data.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+                    <!-- Programming -->
+                    <div class="glass-card p-6 md:p-8 rounded-3xl hover:border-brand-300 transition-all duration-300 group">
+                        <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <i class="fas fa-code text-xl"></i>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                        </div>
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">Programming</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">SQL</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Python</span>
+                        </div>
+                    </div>
+
+                    <!-- Analysis -->
+                    <div class="glass-card p-6 md:p-8 rounded-3xl hover:border-brand-300 transition-all duration-300 group">
+                        <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" /></svg>
+                        </div>
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">Analysis Tools</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Excel</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Power BI</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Power Query</span>
+                        </div>
+                    </div>
+
+                    <!-- Management -->
+                    <div class="glass-card p-6 md:p-8 rounded-3xl hover:border-brand-300 transition-all duration-300 group">
+                        <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+                        </div>
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">Management</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Cleaning</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Organization</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-sm font-medium">Processing</span>
+                        </div>
+                    </div>
+
+                    <!-- Business -->
+                    <div class="glass-card p-6 md:p-8 rounded-3xl hover:border-brand-300 transition-all duration-300 group">
+                        <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.364-6.364l-.707-.707M6.343 17.657l-.707.707m12.728 0l-.707-.707M12 13a3 3 0 110-6 3 3 0 010 6z" /></svg>
+                        </div>
+                        <h4 class="font-bold text-xl mb-4 text-slate-800">Business Acumen</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium uppercase">Insights</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium uppercase">Financials</span>
+                            <span class="px-3 py-1 bg-white border border-slate-200 text-slate-600 rounded-full text-xs font-medium uppercase">Dashboards</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Projects Section -->
+        <section id="projects" class="py-24 px-6 bg-slate-50 overflow-hidden">
+            <div class="max-w-7xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6 px-4">
+                    <div class="space-y-4">
+                        <h2 class="font-display text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">Featured <span class="text-brand-600">Case Studies</span></h2>
+                        <p class="text-slate-500 max-w-xl text-lg">Swipe or use arrows to explore my recent data projects.</p>
+                    </div>
+                    <div class="flex gap-4">
+                        <button onclick="scrollProjects('left')" class="p-4 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-brand-500 hover:text-white transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+                        </button>
+                        <button onclick="scrollProjects('right')" class="p-4 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-brand-500 hover:text-white transition-all shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Project Carousel Container -->
+                <div id="project-container" class="flex overflow-x-auto snap-x snap-mandatory gap-8 no-scrollbar pb-12 transition-all duration-500 scroll-smooth">
+                    
+                    <!-- Retail Project Card -->
+                    <!-- Updated min-w to ensure full width on small screens and contained width on large screens -->
+                    <div class="min-w-full md:min-w-[90%] lg:min-w-full snap-center px-4">
+                        <div class="group relative bg-white rounded-[2rem] overflow-hidden border border-slate-200 transition-all duration-500 shadow-lg flex flex-col lg:flex-row h-full">
+                            <!-- Image/Header Side -->
+                            <div class="lg:w-1/3 bg-brand-900 p-8 md:p-12 flex flex-col justify-center items-center text-center text-white relative overflow-hidden">
+                                <h3 class="font-display text-2xl md:text-3xl font-bold mb-4 relative z-10">Retail Sales Performance</h3>
+                                <div class="flex gap-2 flex-wrap justify-center relative z-10">
+                                    <span class="px-3 py-1 bg-brand-800/50 backdrop-blur rounded-full text-xs font-semibold border border-brand-700">Power BI</span>
+                                    <span class="px-3 py-1 bg-brand-800/50 backdrop-blur rounded-full text-xs font-semibold border border-brand-700">Excel</span>
+                                    <span class="px-3 py-1 bg-brand-800/50 backdrop-blur rounded-full text-xs font-semibold border border-brand-700">Analytics</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Content Side -->
+                            <div class="lg:w-2/3 p-6 md:p-12 space-y-6 flex flex-col justify-between">
+                                <div class="space-y-6">
+                                    <div>
+                                        <h4 class="text-brand-600 font-bold uppercase tracking-widest text-sm mb-2">Objective</h4>
+                                        <p class="text-slate-700 text-base md:text-lg leading-relaxed">Analyzing sales across retail locations to identify performance drivers and revenue growth trends.</p>
+                                    </div>
+                                    <div class="grid md:grid-cols-2 gap-6">
+                                        <div class="space-y-2">
+                                            <div class="flex items-center gap-3 text-slate-800 font-bold">
+                                                <div class="w-8 h-8 rounded-lg bg-brand-100 text-brand-600 flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                                                </div>
+                                                <p class="font-bold text-slate-800">Methodology</p>
+                                            </div>
+                                            <p class="text-slate-600 text-sm">Visualized sales metrics and customer behavior to identify operational efficiencies.</p>
+                                        </div>
+                                        <div class="space-y-2">
+                                            <div class="flex items-center gap-3 text-slate-800 font-bold">
+                                                <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                                                </div>
+                                                <p class="font-bold text-slate-800">Key Outcomes</p>
+                                            </div>
+                                            <p class="text-slate-600 text-sm">Translated raw data into commercial conclusions and actionable sales strategies.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- BUTTONS -->
+                                <div class="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <span class="text-slate-500 text-sm italic">Full Analysis Available</span>
+                                    
+                                    <div class="flex gap-3 w-full sm:w-auto">
+                                        <!-- PDF Button -->
+                                        <a href="./Retail Operations Project.pdf" download class="flex-1 sm:flex-none justify-center inline-flex items-center gap-2 px-4 py-2 bg-brand-600 text-white rounded-xl font-bold hover:bg-brand-700 transition-all shadow-md">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                            </svg>
+                                            DOWNLOAD PDF
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Call to Action -->
+        <section class="py-24 px-6 bg-slate-900 text-white overflow-hidden relative">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
+                <div class="absolute top-0 right-0 w-96 h-96 bg-brand-500 rounded-full blur-[120px]"></div>
+                <div class="absolute bottom-0 left-0 w-96 h-96 bg-accent rounded-full blur-[120px]"></div>
+            </div>
+            <div class="max-w-4xl mx-auto text-center relative z-10 space-y-10">
+                <h2 class="font-display text-4xl md:text-6xl font-extrabold">Ready to unlock the power of <span class="text-brand-400">your data?</span></h2>
+                <p class="text-slate-400 text-lg md:text-xl leading-relaxed">
+                    Passionate about uncovering trends, deriving commercial conclusions, and empowering organizations with data-driven strategies for enhanced performance.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
+                    <a href="mailto:juanlarco10102000@gmail.com" class="px-10 py-5 bg-brand-500 text-white rounded-2xl font-bold text-lg hover:bg-brand-400 transition-all shadow-2xl shadow-brand-500/20 w-full sm:w-auto">Start a Conversation</a>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="https://js.hsforms.net/forms/embed/51028625.js" defer></script>
+<div class="hs-form-frame" data-region="na1" data-form-id="69078993-d0cd-486c-b976-1322ecf7517a" data-portal-id="51028625"></div>
+    <script>
+        // Toggle Mobile Menu
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('translate-x-full');
+        }
+
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleMenu);
+
+        // Project Scroll Logic
+        function scrollProjects(direction) {
+            const container = document.getElementById('project-container');
+            const cardWidth = container.clientWidth; 
+            const maxScrollLeft = container.scrollWidth - container.clientWidth;
+            const currentScroll = container.scrollLeft;
+            const tolerance = 5;
+
+            if (direction === 'left') {
+                if (currentScroll <= tolerance) {
+                    container.scrollTo({ left: maxScrollLeft, behavior: 'smooth' });
+                } else {
+                    container.scrollBy({ left: -cardWidth, behavior: 'smooth' });
+                }
+            } else {
+                if (currentScroll >= maxScrollLeft - tolerance) {
+                    container.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    container.scrollBy({ left: cardWidth, behavior: 'smooth' });
+                }
+            }
+        }
+
+        // Smooth Scroll for Anchors
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+
+        // Header Animations on Scroll
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 20) {
+                header.classList.add('shadow-xl', 'py-2');
+                header.classList.remove('py-0');
+            } else {
+                header.classList.remove('shadow-xl', 'py-2');
+            }
+        });
+
+        // Intersection Observer for Fade-in Animations
+        const observerOptions = { threshold: 0.1 };
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in-up');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.glass-card, h2, #projects > div').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
