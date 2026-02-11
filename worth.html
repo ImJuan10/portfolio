@@ -94,15 +94,15 @@
                 <div class="space-y-2 relative">
                     <div class="flex justify-between">
                         <label class="text-sm font-medium">Password</label>
-                        <button onclick="forgotPassword()" class="text-xs text-primary hover:underline">Forgot Password?</button>
+                        <button onclick="switchAuthView('forgot')" class="text-xs text-primary hover:underline">Forgot Password?</button>
                     </div>
                     <div class="relative">
-                        <input id="authPass" type="password" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pr-10 text-foreground" onkeydown="if(event.key === 'Enter') handleAuth('login')">
-                        <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground outline-none">
-                            <i id="eyeIconShow" data-lucide="eye" class="h-4 w-4"></i>
-                            <i id="eyeIconHide" data-lucide="eye-off" class="h-4 w-4 hidden"></i>
-                        </button>
-                    </div>
+                    <input id="authPass" type="password" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pr-10 text-foreground" onkeydown="if(event.key === 'Enter') handleAuth('login')">
+                    <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground outline-none flex items-center justify-center">
+                        <span id="eyeShow"><i data-lucide="eye" class="h-4 w-4"></i></span>
+                        <span id="eyeHide" class="hidden"><i data-lucide="eye-off" class="h-4 w-4"></i></span>
+                    </button>
+                </div>
                 </div>
                 <button onclick="handleAuth('login')" class="w-full h-10 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 flex items-center justify-center gap-2">
                     <span id="loginBtnText">Sign In</span>
@@ -113,6 +113,34 @@
                     <div class="relative flex justify-center text-xs uppercase"><span class="bg-card px-2 text-muted-foreground">Or</span></div>
                 </div>
                 <button onclick="handleAuth('signup')" class="w-full h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground font-medium">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === FORGOT PASSWORD SCREEN === -->
+    <div id="view-forgot" class="hidden flex min-h-screen items-center justify-center p-4 bg-background z-50">
+        <div class="w-full max-w-sm rounded-lg border border-border bg-card text-card-foreground shadow-lg p-6 fade-in">
+            <div class="flex flex-col items-center gap-2 mb-6">
+                <div class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                    <i data-lucide="key-round" class="h-6 w-6"></i>
+                </div>
+                <h1 class="text-2xl font-bold">Reset Password</h1>
+                <p class="text-sm text-muted-foreground text-center">Enter your email and we'll send you a link to reset your password.</p>
+            </div>
+
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Email Address</label>
+                    <input id="forgotEmail" type="email" placeholder="name@example.com" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring text-foreground">
+                </div>
+
+                <button onclick="handlePasswordReset()" class="w-full h-10 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 flex items-center justify-center gap-2">
+                    <span>Send Reset Link</span>
+                </button>
+
+                <button onclick="switchAuthView('login')" class="w-full h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground font-medium text-sm">
+                    Back to Login
+                </button>
             </div>
         </div>
     </div>
@@ -423,22 +451,25 @@
         }
 
         function togglePassVisibility() {
-            const input = document.getElementById('authPass');
-            const iconShow = document.getElementById('eyeIconShow');
-            const iconHide = document.getElementById('eyeIconHide');
-            if (input.type === 'password') {
-                input.type = 'text';
-                iconShow.classList.add('hidden'); iconHide.classList.remove('hidden');
-            } else {
-                input.type = 'password';
-                iconShow.classList.remove('hidden'); iconHide.classList.add('hidden');
-            }
+        const input = document.getElementById('authPass');
+        const showSpan = document.getElementById('eyeShow');
+        const hideSpan = document.getElementById('eyeHide');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            showSpan.classList.add('hidden');
+            hideSpan.classList.remove('hidden');
+        } else {
+            input.type = 'password';
+            showSpan.classList.remove('hidden');
+            hideSpan.classList.add('hidden');
         }
+    }
 
         async function forgotPassword() {
             const email = document.getElementById('authEmail').value;
             if(!email) return showToast("Required", "Enter email first.", "destructive");
-            try { await auth.sendPasswordResetEmail(email); showToast("Sent", "Check your email."); } 
+            try { await auth.sendPasswordResetEmail(email); showToast("Sent", "Check your spam folder."); } 
             catch(e) { showToast("Error", e.message, "destructive"); }
         }
 
@@ -679,6 +710,53 @@
             }
         }
 
+        // Switch between Login and Forgot Password views
+        function switchAuthView(viewName) {
+            const loginView = document.getElementById('view-auth');
+            const forgotView = document.getElementById('view-forgot');
+            
+            // Clear inputs when switching
+            document.getElementById('forgotEmail').value = '';
+            
+            if (viewName === 'forgot') {
+                loginView.classList.add('hidden');
+                forgotView.classList.remove('hidden');
+                // Initialize icons for the new view
+                lucide.createIcons();
+            } else {
+                forgotView.classList.add('hidden');
+                loginView.classList.remove('hidden');
+            }
+        }
+
+        // The "Real" Firebase Password Recovery Function
+        async function handlePasswordReset() {
+            const email = document.getElementById('forgotEmail').value;
+            
+            if (!email) {
+                return showToast("Required", "Please enter your email address.", "destructive");
+            }
+
+            try {
+                // This is the standard Firebase function. 
+                // It sends an email containing a link to reset the password.
+                await auth.sendPasswordResetEmail(email);
+                
+                showToast("Success", "Reset link sent! Check your email.");
+                
+                // Optional: Automatically switch back to login after a delay
+                setTimeout(() => switchAuthView('login'), 3000);
+                
+            } catch (error) {
+                // Handle common errors (like user not found)
+                let msg = error.message;
+                if (error.code === 'auth/user-not-found') {
+                    msg = "No account found with this email.";
+                }
+                showToast("Error", msg, "destructive");
+            }
+        }
+
         function openDayDetails(str) {
             const d = (appData.history && appData.history[str]) || {tasks:[], rewards:[]};
             document.getElementById('modalDateTitle').textContent = new Date(str+'T00:00').toLocaleDateString(undefined, {dateStyle:'full'});
@@ -690,6 +768,7 @@
             
             openModal('detailsModal'); lucide.createIcons();
         }
+        lucide.createIcons();
     </script>
 </body>
 </html>
