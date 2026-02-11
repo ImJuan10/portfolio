@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskWorth - v8</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --background: 0 0% 98%; --foreground: 240 10% 3.9%;
+            --card: 0 0% 100%; --card-foreground: 240 10% 3.9%;
+            --primary: 261 51% 54%; --primary-foreground: 0 0% 98%;
+            --primary-10: hsla(261, 51%, 54%, 0.1);
+            --secondary: 240 4.8% 95.9%; --secondary-foreground: 240 5.9% 10%;
+            --muted: 240 4.8% 95.9%; --muted-foreground: 240 3.8% 46.1%;
+            --destructive: 0 84.2% 60.2%; --destructive-foreground: 0 0% 98%;
+            --border: 240 5.9% 90%; --input: 240 5.9% 90%;
+            --ring: 261 51% 54%; --radius: 0.5rem;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: hsl(var(--background)); color: hsl(var(--foreground)); }
+        
+        /* Utility Classes */
+        .bg-background { background-color: hsl(var(--background)); } .bg-card { background-color: hsl(var(--card)); }
+        .bg-primary { background-color: hsl(var(--primary)); } .text-primary { color: hsl(var(--primary)); }
+        .text-primary-foreground { color: hsl(var(--primary-foreground)); } .bg-primary-10 { background-color: var(--primary-10); }
+        .bg-muted { background-color: hsl(var(--muted)); } .text-muted-foreground { color: hsl(var(--muted-foreground)); }
+        .border-input { border-color: hsl(var(--input)); } .text-destructive { color: hsl(var(--destructive)); }
+        .bg-destructive { background-color: hsl(var(--destructive)); } .text-destructive-foreground { color: hsl(var(--destructive-foreground)); }
+        
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .toast-slide-in { animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        .toast-slide-out { animation: toastOut 0.2s ease-in forwards; }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes toastOut { from { transform: translateX(0); opacity: 1; } to { transform: translateX(100%); opacity: 0; } }
+        
+        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #7c3aed; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: { border: "hsl(var(--border))", input: "hsl(var(--input))", ring: "hsl(var(--ring))", background: "hsl(var(--background))", foreground: "hsl(var(--foreground))", primary: { DEFAULT: "hsl(var(--primary))", foreground: "hsl(var(--primary-foreground))" }, destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" }, muted: { DEFAULT: "hsl(var(--muted))", foreground: "hsl(var(--muted-foreground))" }, card: { DEFAULT: "hsl(var(--card))", foreground: "hsl(var(--card-foreground))" } }, borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" } } }
+        }
+    </script>
+</head>
+<body class="flex min-h-screen flex-col antialiased relative">
+
+    <!-- === AUTH SCREEN === -->
+    <div id="view-auth" class="flex min-h-screen items-center justify-center p-4 bg-background z-50">
+        <div class="w-full max-w-sm rounded-lg border bg-card text-card-foreground shadow-lg p-6 fade-in">
+            <div class="flex flex-col items-center gap-2 mb-6">
+                <i data-lucide="gem" class="h-10 w-10 text-primary"></i>
+                <h1 class="text-2xl font-bold">TaskWorth</h1>
+                <p class="text-sm text-muted-foreground text-center">Login to sync your progress</p>
+            </div>
+            <div class="space-y-4">
+                <div class="space-y-2">
+                    <label class="text-sm font-medium">Email</label>
+                    <input id="authEmail" type="email" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                </div>
+                    <div class="space-y-2 relative">
+                    <div class="flex justify-between">
+                        <label class="text-sm font-medium">Password</label>
+                        <button onclick="forgotPassword()" class="text-xs text-primary hover:underline">Forgot Password?</button>
+                    </div>
+                    <div class="relative">
+                        <input id="authPass" type="password" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pr-10">
+                        <button type="button" onclick="togglePassVisibility()" class="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground outline-none">
+                            <!-- Icon when password is hidden (Show) -->
+                            <i id="eyeIconShow" data-lucide="eye" class="h-4 w-4"></i>
+                            <!-- Icon when password is visible (Hide) -->
+                            <i id="eyeIconHide" data-lucide="eye-off" class="h-4 w-4 hidden"></i>
+                        </button>
+                    </div>
+                </div>
+                <button onclick="handleAuth('login')" class="w-full h-10 rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90 flex items-center justify-center gap-2">
+                    <span id="loginBtnText">Sign In</span>
+                    <div id="loginLoader" class="loader hidden"></div>
+                </button>
+                <div class="relative">
+                    <div class="absolute inset-0 flex items-center"><span class="w-full border-t"></span></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-card px-2 text-muted-foreground">Or</span></div>
+                </div>
+                <button onclick="handleAuth('signup')" class="w-full h-10 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground font-medium">Create Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- === MAIN APP === -->
+    <div id="view-app" class="hidden flex-col min-h-screen w-full">
+        <!-- Header -->
+        <!-- Header -->
+<header class="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-white/80 backdrop-blur-sm px-4 md:px-6 shadow-sm">
+    <div class="flex items-center gap-2 font-semibold cursor-pointer" onclick="switchTab('dashboard')">
+        <i data-lucide="gem" class="h-6 w-6 text-primary"></i>
+        <span class="text-xl tracking-tight hidden sm:block">TaskWorth</span>
+    </div>
+    
+    <div class="flex w-full items-center justify-end gap-6">
+        <!-- Balance -->
+        <div class="flex items-center gap-2 rounded-full bg-primary-10 px-4 py-2 text-sm font-medium text-primary border border-primary/20">
+            <i data-lucide="gem" class="h-4 w-4"></i>
+            <div class="flex items-baseline gap-1">
+                <span class="font-bold tracking-wide text-base" id="balanceDisplay">...</span>
+                <span class="font-normal opacity-80 text-xs">Worth</span>
+            </div>
+        </div>
+
+        <!-- User Profile Section -->
+        <div class="flex items-center gap-3 border-l pl-6 border-border h-8">
+            <div class="h-9 w-9 rounded-full bg-secondary flex items-center justify-center border border-input text-muted-foreground">
+                <i data-lucide="user" class="h-5 w-5"></i>
+            </div>
+            <div class="flex flex-col items-start justify-center leading-none">
+                <span class="text-sm font-medium"><span id="headerUsername">User</span></span>
+                <button onclick="openProfile()" class="text-xs text-muted-foreground hover:text-primary hover:underline mt-0.5">edit profile</button>
+            </div>
+        </div>
+
+        <!-- Log Out Button (Moved to the very right) -->
+        <button onclick="logout()" class="text-muted-foreground hover:text-destructive transition-colors flex items-center gap-2" title="Log Out">
+            <i data-lucide="log-out" class="h-5 w-5"></i>
+            <span class="hidden lg:inline text-sm font-medium"></span>
+        </button>
+    </div>
+</header>
+        <!-- Main Content -->
+        <main class="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8 max-w-6xl mx-auto w-full">
+            <!-- Tabs -->
+            <div class="w-full md:w-[400px] grid grid-cols-2 rounded-md bg-muted p-1 text-muted-foreground mx-auto md:mx-0">
+                <button onclick="switchTab('dashboard')" id="tab-dashboard" class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all bg-background text-foreground shadow-sm">Dashboard</button>
+                <button onclick="switchTab('history')" id="tab-history" class="inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all hover:bg-background/50">History</button>
+            </div>
+
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="grid gap-8 md:grid-cols-2 items-start fade-in">
+                
+                <!-- Tasks Card -->
+                <div class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col h-fit">
+                    <div class="flex flex-row items-center justify-between p-6 pb-4 border-b">
+                        <div class="flex flex-col space-y-1.5">
+                            <h3 class="text-2xl font-semibold flex items-center gap-2">
+                                <i data-lucide="clipboard-list" class="h-5 w-5 text-primary"></i> Tasks
+                            </h3>
+                            <p class="text-sm text-muted-foreground">Click a task to edit or delete.</p>
+                        </div>
+                        <button onclick="openModal('addTaskModal')" class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-3 shadow-sm transition-colors">
+                            <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Add
+                        </button>
+                    </div>
+                    <div class="p-4 pt-4">
+                        <div id="taskList" class="space-y-2">
+                            <!-- Tasks injected here -->
+                        </div>
+                        <div id="emptyTasks" class="hidden flex flex-col items-center justify-center text-center text-muted-foreground py-8">
+                            <p class="mb-2">No tasks yet.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rewards Card -->
+                <div class="rounded-lg border bg-card text-card-foreground shadow-sm flex flex-col h-fit">
+                    <div class="flex flex-row items-center justify-between p-6 pb-4 border-b">
+                        <div class="flex flex-col space-y-1.5">
+                            <h3 class="text-2xl font-semibold flex items-center gap-2">
+                                <i data-lucide="gift" class="h-5 w-5 text-primary"></i> Rewards
+                            </h3>
+                            <p class="text-sm text-muted-foreground">Click a reward to edit or delete.</p>
+                        </div>
+                        <button onclick="openModal('addRewardModal')" class="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3 shadow-sm transition-colors">
+                            <i data-lucide="plus" class="h-4 w-4 mr-2"></i> Add
+                        </button>
+                    </div>
+                    <div class="p-4 pt-4">
+                        <div id="rewardList" class="space-y-2">
+                            <!-- Rewards injected here -->
+                        </div>
+                        <div id="emptyRewards" class="hidden flex flex-col items-center justify-center text-center text-muted-foreground py-8">
+                            <p class="mb-2">No rewards yet.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- History View -->
+            <div id="view-history" class="hidden fade-in">
+                <div class="rounded-lg border bg-card text-card-foreground shadow-sm max-w-3xl mx-auto">
+                    <div class="flex flex-col space-y-1.5 p-6 border-b">
+                        <h3 class="text-2xl font-semibold">Activity History</h3>
+                        <p class="text-sm text-muted-foreground">Click a date to view details or undo mistakes.</p>
+                    </div>
+                    <div class="p-6 flex justify-center">
+                        <div class="w-full max-w-md">
+                            <div class="flex items-center justify-between mb-4 px-2">
+                                <button onclick="changeMonth(-1)" class="h-9 w-9 rounded-md border border-input flex items-center justify-center hover:bg-accent"><i data-lucide="chevron-left" class="h-4 w-4"></i></button>
+                                <div class="font-semibold" id="calendarMonthDisplay">Month Year</div>
+                                <button onclick="changeMonth(1)" class="h-9 w-9 rounded-md border border-input flex items-center justify-center hover:bg-accent"><i data-lucide="chevron-right" class="h-4 w-4"></i></button>
+                            </div>
+                            <!-- Calendar Days Header -->
+                            <div class="grid grid-cols-7 gap-1 text-center mb-2 text-xs text-muted-foreground font-medium">
+                                <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                            </div>
+                            <!-- Calendar Grid -->
+                            <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-[100] flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- === MODALS === -->
+
+    <!-- Add Task Modal -->
+    <div id="addTaskModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg">
+            <button onclick="closeModal('addTaskModal')" class="absolute right-4 top-4 opacity-70 hover:opacity-100"><i data-lucide="x" class="h-4 w-4"></i></button>
+            <h2 class="text-lg font-semibold mb-4">Create New Task</h2>
+            <div class="space-y-4">
+                <div class="space-y-1"><label class="text-sm font-medium">Name *</label><input id="newTaskName" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Value *</label><input id="newTaskValue" type="number" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Description</label><textarea id="newTaskDesc" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></textarea></div>
+                <div class="flex justify-end gap-2"><button onclick="closeModal('addTaskModal')" class="h-10 px-4 rounded-md border hover:bg-accent">Cancel</button><button onclick="createTask()" class="h-10 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">Create</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Reward Modal -->
+    <div id="addRewardModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg">
+            <button onclick="closeModal('addRewardModal')" class="absolute right-4 top-4 opacity-70 hover:opacity-100"><i data-lucide="x" class="h-4 w-4"></i></button>
+            <h2 class="text-lg font-semibold mb-4">Create New Reward</h2>
+            <div class="space-y-4">
+                <div class="space-y-1"><label class="text-sm font-medium">Name *</label><input id="newRewardName" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Cost *</label><input id="newRewardCost" type="number" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Description</label><textarea id="newRewardDesc" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></textarea></div>
+                <div class="flex justify-end gap-2"><button onclick="closeModal('addRewardModal')" class="h-10 px-4 rounded-md border hover:bg-accent">Cancel</button><button onclick="createReward()" class="h-10 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">Create</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Task Modal -->
+    <div id="editTaskModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg">
+            <button onclick="closeModal('editTaskModal')" class="absolute right-4 top-4 opacity-70 hover:opacity-100"><i data-lucide="x" class="h-4 w-4"></i></button>
+            <h2 class="text-lg font-semibold mb-4">Edit Task</h2>
+            <input type="hidden" id="editTaskId">
+            <div class="space-y-4">
+                <div class="space-y-1"><label class="text-sm font-medium">Name</label><input id="editTaskName" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Value</label><input id="editTaskValue" type="number" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Description</label><textarea id="editTaskDesc" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></textarea></div>
+                <div class="flex justify-between gap-2">
+                    <button onclick="deleteItem('task')" class="h-10 px-4 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"><i data-lucide="trash-2" class="inline h-4 w-4 mr-2"></i>Delete</button>
+                    <div class="flex gap-2"><button onclick="closeModal('editTaskModal')" class="h-10 px-4 rounded-md border hover:bg-accent">Cancel</button><button onclick="updateTask()" class="h-10 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">Save</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Reward Modal -->
+    <div id="editRewardModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-lg rounded-lg border bg-background p-6 shadow-lg">
+            <button onclick="closeModal('editRewardModal')" class="absolute right-4 top-4 opacity-70 hover:opacity-100"><i data-lucide="x" class="h-4 w-4"></i></button>
+            <h2 class="text-lg font-semibold mb-4">Edit Reward</h2>
+            <input type="hidden" id="editRewardId">
+            <div class="space-y-4">
+                <div class="space-y-1"><label class="text-sm font-medium">Name</label><input id="editRewardName" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Cost</label><input id="editRewardCost" type="number" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></div>
+                <div class="space-y-1"><label class="text-sm font-medium">Description</label><textarea id="editRewardDesc" class="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring"></textarea></div>
+                <div class="flex justify-between gap-2">
+                    <button onclick="deleteItem('reward')" class="h-10 px-4 rounded-md bg-destructive text-destructive-foreground hover:bg-destructive/90"><i data-lucide="trash-2" class="inline h-4 w-4 mr-2"></i>Delete</button>
+                    <div class="flex gap-2"><button onclick="closeModal('editRewardModal')" class="h-10 px-4 rounded-md border hover:bg-accent">Cancel</button><button onclick="updateReward()" class="h-10 px-4 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">Save</button></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Profile Modal -->
+    <div id="profileModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
+            <button onclick="closeModal('profileModal')" class="absolute right-4 top-4 opacity-70 hover:opacity-100"><i data-lucide="x" class="h-4 w-4"></i></button>
+            <h2 class="text-lg font-semibold mb-1">User Settings</h2>
+            <p class="text-sm text-muted-foreground mb-4">Manage your account and balance.</p>
+            
+            <div class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-sm font-medium">Display Name</label>
+                    <input id="profileName" type="text" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring">
+                </div>
+                
+                <div class="p-4 bg-muted/50 rounded-lg border border-border">
+                    <label class="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Manual Balance Correction</label>
+                    <div class="flex items-center gap-2 mt-2">
+                        <i data-lucide="gem" class="h-5 w-5 text-primary"></i>
+                        <input id="profileBalance" type="number" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:ring-2 focus:ring-ring font-mono">
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-2">Use this if your coin count is incorrect.</p>
+                </div>
+
+                <div class="flex flex-col gap-2 pt-2">
+                    <button onclick="saveProfile()" class="h-10 w-full rounded-md bg-primary text-primary-foreground font-medium hover:bg-primary/90">Save Changes</button>
+                    <button onclick="logout()" class="h-10 w-full rounded-md border border-input bg-background hover:bg-destructive/10 hover:text-destructive text-sm font-medium">Log Out</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Details/Undo Modal -->
+    <div id="detailsModal" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 fade-in">
+        <div class="relative w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
+            <button onclick="closeModal('detailsModal')" class="absolute right-4 top-4 opacity-70 hover:opacity-100"><i data-lucide="x" class="h-4 w-4"></i></button>
+            <h2 id="modalDateTitle" class="text-lg font-semibold mb-1">Activity</h2>
+            <p class="text-xs text-muted-foreground mb-6">Click the trash icon to undo an action and revert coins.</p>
+            
+            <div class="space-y-6">
+                <!-- Tasks -->
+                <div>
+                    <h3 class="flex items-center gap-2 font-semibold mb-2 text-sm text-green-600"><i data-lucide="check-circle" class="h-4 w-4"></i> Tasks Completed</h3>
+                    <ul id="modalTaskList" class="space-y-2"></ul>
+                    <p id="noTasksMsg" class="text-sm text-muted-foreground italic hidden">None.</p>
+                </div>
+                <!-- Rewards -->
+                <div>
+                    <h3 class="flex items-center gap-2 font-semibold mb-2 text-sm text-destructive"><i data-lucide="trophy" class="h-4 w-4"></i> Rewards Redeemed</h3>
+                    <ul id="modalRewardList" class="space-y-2"></ul>
+                    <p id="noRewardsMsg" class="text-sm text-muted-foreground italic hidden">None.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- FIREBASE CONFIGURATION ---
+        const firebaseConfig = {
+        apiKey: "AIzaSyBn909QKN33esiWbxPawEcoVJPIIMbraic",
+        authDomain: "taskworth-5e5ad.firebaseapp.com",
+        projectId: "taskworth-5e5ad",
+        storageBucket: "taskworth-5e5ad.firebasestorage.app",
+        messagingSenderId: "762130158996",
+        appId: "1:762130158996:web:898ba8b4a9b6695914eb81",
+        measurementId: "G-1CCWR3EJ2Q"
+        };
+
+        let app, auth, db;
+        try {
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.firestore();
+        } catch (e) {
+            console.error("Firebase not initialized. Paste keys.");
+        }
+
+        // --- State ---
+        let currentUser = null;
+        let appData = { balance: 0, tasks: [], rewards: [], history: {}, displayName: "" };
+        let calendarDate = new Date();
+
+        // --- Auth Logic ---
+        if(auth) {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    document.getElementById('view-auth').classList.add('hidden');
+                    document.getElementById('view-app').classList.remove('hidden');
+                    document.getElementById('view-app').classList.add('flex');
+                    loadData();
+                } else {
+                    currentUser = null;
+                    document.getElementById('view-auth').classList.remove('hidden');
+                    document.getElementById('view-app').classList.add('hidden');
+                    document.getElementById('view-app').classList.remove('flex');
+                }
+            });
+        }
+
+        async function handleAuth(type) {
+            const email = document.getElementById('authEmail').value;
+            const pass = document.getElementById('authPass').value;
+            const loader = document.getElementById('loginLoader');
+            const btnText = document.getElementById('loginBtnText');
+            
+            if(!email || !pass) return showToast("Error", "Missing credentials", "destructive");
+            
+            loader.classList.remove('hidden'); 
+            btnText.classList.add('hidden');
+            
+            try {
+                if(type === 'login') await auth.signInWithEmailAndPassword(email, pass);
+                else {
+                    await auth.createUserWithEmailAndPassword(email, pass);
+                    await db.collection('users').doc(auth.currentUser.uid).set(appData);
+                }
+            } catch(e) { 
+                showToast("Error", e.message, "destructive"); 
+            } finally { 
+                loader.classList.add('hidden'); 
+                btnText.classList.remove('hidden'); 
+            }
+        }
+
+                function togglePassVisibility() {
+            const input = document.getElementById('authPass');
+            const iconShow = document.getElementById('eyeIconShow');
+            const iconHide = document.getElementById('eyeIconHide');
+            
+            if (input.type === 'password') {
+                // Switch to visible text
+                input.type = 'text';
+                iconShow.classList.add('hidden');
+                iconHide.classList.remove('hidden');
+            } else {
+                // Switch to hidden password
+                input.type = 'password';
+                iconShow.classList.remove('hidden');
+                iconHide.classList.add('hidden');
+            }
+        }
+
+        async function forgotPassword() {
+            const email = document.getElementById('authEmail').value;
+            if(!email) return showToast("Required", "Enter email first.", "destructive");
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showToast("Sent", "Check your email.");
+            } catch(e) { showToast("Error", e.message, "destructive"); }
+        }
+
+        function logout() { auth.signOut(); closeModal('profileModal'); }
+
+        // --- Database Logic ---
+        async function loadData() {
+            if(!currentUser) return;
+            const doc = await db.collection('users').doc(currentUser.uid).get();
+            if(doc.exists) {
+                appData = doc.data();
+                if(!appData.history) appData.history = {}; // Safety init
+                render();
+            } else saveData();
+        }
+
+        async function saveData() {
+            if(!currentUser) return;
+            await db.collection('users').doc(currentUser.uid).set(appData);
+            render();
+        }
+
+        // --- Profile Logic ---
+        function openProfile() {
+            document.getElementById('profileName').value = appData.displayName || (currentUser.email ? currentUser.email.split('@')[0] : 'User');
+            document.getElementById('profileBalance').value = appData.balance;
+            openModal('profileModal');
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profileName').value;
+            const bal = parseInt(document.getElementById('profileBalance').value);
+            if(isNaN(bal)) return showToast("Error", "Invalid balance", "destructive");
+            
+            appData.displayName = name;
+            appData.balance = bal;
+            saveData();
+            closeModal('profileModal');
+            showToast("Success", "Profile updated");
+        }
+
+        // --- Utilities ---
+        function formatNumber(num) { return num.toLocaleString('en-US'); }
+        function getTodayStr() { return new Date().toLocaleDateString('en-CA'); }
+        
+        // --- UI Navigation ---
+        function switchTab(tab) {
+            // Hide all views
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-history').classList.add('hidden');
+            
+            const btnDash = document.getElementById('tab-dashboard');
+            const btnHist = document.getElementById('tab-history');
+
+            if (tab === 'dashboard') {
+                document.getElementById('view-dashboard').classList.remove('hidden');
+                btnDash.classList.replace('bg-background', 'bg-background'); // reset
+                btnDash.classList.add('bg-background', 'text-foreground', 'shadow-sm');
+                btnDash.classList.remove('hover:bg-background/50');
+
+                btnHist.classList.remove('bg-background', 'text-foreground', 'shadow-sm');
+                btnHist.classList.add('hover:bg-background/50');
+            } else {
+                document.getElementById('view-history').classList.remove('hidden');
+                btnHist.classList.add('bg-background', 'text-foreground', 'shadow-sm');
+                btnHist.classList.remove('hover:bg-background/50');
+
+                btnDash.classList.remove('bg-background', 'text-foreground', 'shadow-sm');
+                btnDash.classList.add('hover:bg-background/50');
+                renderCalendar();
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+        function showToast(title, desc, type='default') {
+            const container = document.getElementById('toast-container');
+            const el = document.createElement('div');
+            const bg = type === 'destructive' ? 'bg-destructive text-destructive-foreground' : 'bg-background text-foreground border';
+            el.className = `p-4 rounded-md shadow-lg w-full md:w-[350px] toast-slide-in ${bg}`;
+            el.innerHTML = `<div class="font-bold text-sm">${title}</div><div class="text-sm opacity-90">${desc}</div>`;
+            container.appendChild(el);
+            setTimeout(() => { 
+                el.classList.replace('toast-slide-in', 'toast-slide-out'); 
+                setTimeout(() => el.remove(), 200); 
+            }, 3000);
+        }
+
+        // --- Tasks & Rewards CRUD ---
+        function createTask() {
+            const n = document.getElementById('newTaskName').value;
+            const v = parseInt(document.getElementById('newTaskValue').value);
+            const d = document.getElementById('newTaskDesc').value;
+            if(!n || isNaN(v)) return showToast("Error", "Missing fields", "destructive");
+            appData.tasks.push({ id: Date.now(), name: n, value: v, description: d });
+            document.getElementById('newTaskName').value=''; document.getElementById('newTaskValue').value=''; document.getElementById('newTaskDesc').value='';
+            closeModal('addTaskModal'); saveData(); showToast("Success", "Task created");
+        }
+
+        function createReward() {
+            const n = document.getElementById('newRewardName').value;
+            const c = parseInt(document.getElementById('newRewardCost').value);
+            const d = document.getElementById('newRewardDesc').value;
+            if(!n || isNaN(c)) return showToast("Error", "Missing fields", "destructive");
+            appData.rewards.push({ id: Date.now(), name: n, cost: c, description: d });
+            document.getElementById('newRewardName').value=''; document.getElementById('newRewardCost').value=''; document.getElementById('newRewardDesc').value='';
+            closeModal('addRewardModal'); saveData(); showToast("Success", "Reward created");
+        }
+
+        function openEditTask(id) {
+            const t = appData.tasks.find(x => x.id === id); if(!t) return;
+            document.getElementById('editTaskId').value = t.id;
+            document.getElementById('editTaskName').value = t.name;
+            document.getElementById('editTaskValue').value = t.value;
+            document.getElementById('editTaskDesc').value = t.description || "";
+            openModal('editTaskModal');
+        }
+        function updateTask() {
+            const idx = appData.tasks.findIndex(x => x.id === parseInt(document.getElementById('editTaskId').value));
+            if(idx > -1) {
+                appData.tasks[idx].name = document.getElementById('editTaskName').value;
+                appData.tasks[idx].value = parseInt(document.getElementById('editTaskValue').value);
+                appData.tasks[idx].description = document.getElementById('editTaskDesc').value;
+                closeModal('editTaskModal'); saveData(); showToast("Updated", "Task saved");
+            }
+        }
+
+        function openEditReward(id) {
+            const r = appData.rewards.find(x => x.id === id); if(!r) return;
+            document.getElementById('editRewardId').value = r.id;
+            document.getElementById('editRewardName').value = r.name;
+            document.getElementById('editRewardCost').value = r.cost;
+            document.getElementById('editRewardDesc').value = r.description || "";
+            openModal('editRewardModal');
+        }
+        function updateReward() {
+            const idx = appData.rewards.findIndex(x => x.id === parseInt(document.getElementById('editRewardId').value));
+            if(idx > -1) {
+                appData.rewards[idx].name = document.getElementById('editRewardName').value;
+                appData.rewards[idx].cost = parseInt(document.getElementById('editRewardCost').value);
+                appData.rewards[idx].description = document.getElementById('editRewardDesc').value;
+                closeModal('editRewardModal'); saveData(); showToast("Updated", "Reward saved");
+            }
+        }
+
+        function deleteItem(type) {
+            if(!confirm("Delete this item?")) return;
+            const id = parseInt(document.getElementById(type === 'task' ? 'editTaskId' : 'editRewardId').value);
+            if(type === 'task') appData.tasks = appData.tasks.filter(x => x.id !== id);
+            else appData.rewards = appData.rewards.filter(x => x.id !== id);
+            closeModal(type === 'task' ? 'editTaskModal' : 'editRewardModal');
+            saveData();
+        }
+
+        // --- Action Logging & Undo ---
+        function logHistory(type, item) {
+            const d = getTodayStr();
+            if(!appData.history[d]) appData.history[d] = { tasks: [], rewards: [] };
+            appData.history[d][type].push({ name: item.name, value: item.value || item.cost });
+        }
+
+        function completeTask(e, id) {
+            e.stopPropagation(); 
+            const t = appData.tasks.find(x => x.id === id);
+            appData.balance += t.value; 
+            logHistory('tasks', t); 
+            saveData(); 
+            showToast("Nice!", `+${formatNumber(t.value)}`);
+        }
+        
+        function buyReward(e, id) {
+            e.stopPropagation(); 
+            const r = appData.rewards.find(x => x.id === id);
+            if(appData.balance < r.cost) return showToast("Poor!", "Not enough Worth", "destructive");
+            appData.balance -= r.cost; 
+            logHistory('rewards', r); 
+            saveData(); 
+            showToast("Bought", `-${formatNumber(r.cost)}`);
+        }
+
+        function deleteHistoryItem(dateStr, type, index) {
+            if(!confirm("Undo this action? Coins will be adjusted.")) return;
+            const dayData = appData.history[dateStr];
+            const item = dayData[type][index];
+            
+            // Undo Math
+            if(type === 'tasks') appData.balance -= item.value; // Remove coins gained
+            else appData.balance += item.value; // Return coins spent
+            
+            dayData[type].splice(index, 1);
+            saveData();
+            openDayDetails(dateStr); // refresh view
+            showToast("Undone", "Activity removed.");
+        }
+
+        // --- Render Main View ---
+        function render() {
+            document.getElementById('balanceDisplay').textContent = formatNumber(appData.balance);
+            document.getElementById('headerUsername').textContent = appData.displayName || (currentUser.email ? currentUser.email.split('@')[0] : "User");
+            
+            // Render Tasks
+            const tList = document.getElementById('taskList'); 
+            tList.innerHTML = '';
+            if(appData.tasks.length === 0) document.getElementById('emptyTasks').classList.remove('hidden');
+            else {
+                document.getElementById('emptyTasks').classList.add('hidden');
+                appData.tasks.forEach(t => {
+                    tList.innerHTML += `
+                    <div onclick="openEditTask(${t.id})" class="group flex items-center justify-between rounded-md border p-3 hover:bg-muted/50 transition-colors cursor-pointer">
+                        <div class="flex flex-col gap-1 overflow-hidden">
+                            <span class="font-medium text-sm truncate">${t.name}</span>
+                            ${t.description ? `<span class="text-xs text-muted-foreground truncate">${t.description}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="flex items-center gap-1 text-sm font-medium text-green-600"><i data-lucide="gem" class="h-3 w-3"></i> +${formatNumber(t.value)}</span>
+                            <button onclick="completeTask(event, ${t.id})" class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-background hover:bg-green-50 text-green-600 shadow-sm ml-2"><i data-lucide="check" class="h-4 w-4"></i></button>
+                        </div>
+                    </div>`;
+                });
+            }
+
+            // Render Rewards
+            const rList = document.getElementById('rewardList'); 
+            rList.innerHTML = '';
+            if(appData.rewards.length === 0) document.getElementById('emptyRewards').classList.remove('hidden');
+            else {
+                document.getElementById('emptyRewards').classList.add('hidden');
+                appData.rewards.forEach(r => {
+                    const can = appData.balance >= r.cost;
+                    rList.innerHTML += `
+                    <div onclick="openEditReward(${r.id})" class="group flex items-center justify-between rounded-md border p-3 transition-colors cursor-pointer ${can ? 'hover:bg-muted/50' : 'opacity-60 bg-muted/20'}">
+                        <div class="flex flex-col gap-1 overflow-hidden">
+                            <span class="font-medium text-sm truncate">${r.name}</span>
+                            ${r.description ? `<span class="text-xs text-muted-foreground truncate">${r.description}</span>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2 flex-shrink-0">
+                            <span class="flex items-center gap-1 text-sm font-medium text-destructive"><i data-lucide="gem" class="h-3 w-3"></i> -${formatNumber(r.cost)}</span>
+                            <button onclick="buyReward(event, ${r.id})" ${!can ? 'disabled' : ''} class="h-8 w-8 inline-flex items-center justify-center rounded-md border bg-background ${can ? 'hover:bg-primary/10 text-primary' : 'cursor-not-allowed text-muted-foreground'} shadow-sm ml-2"><i data-lucide="trophy" class="h-4 w-4"></i></button>
+                        </div>
+                    </div>`;
+                });
+            }
+            lucide.createIcons();
+        }
+
+        // --- Calendar ---
+        function changeMonth(d) { calendarDate.setMonth(calendarDate.getMonth() + d); renderCalendar(); }
+        
+        function renderCalendar() {
+            const y = calendarDate.getFullYear(), m = calendarDate.getMonth();
+            document.getElementById('calendarMonthDisplay').textContent = new Date(y, m).toLocaleDateString(undefined, {month:'long', year:'numeric'});
+            
+            const first = new Date(y, m, 1).getDay();
+            const days = new Date(y, m+1, 0).getDate();
+            const grid = document.getElementById('calendarGrid'); 
+            grid.innerHTML = '';
+            
+            const today = new Date(); today.setHours(0,0,0,0);
+
+            // Empty slots
+            for(let i=0; i<first; i++) grid.appendChild(document.createElement('div'));
+            
+            // Days
+            for(let d=1; d<=days; d++) {
+                const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                
+                // Safe check for history
+                const hasData = appData.history && appData.history[dateStr] && (appData.history[dateStr].tasks.length > 0 || appData.history[dateStr].rewards.length > 0);
+                
+                const checkDate = new Date(y, m, d);
+                const isPast = checkDate < today;
+                const isToday = dateStr === getTodayStr();
+
+                const btn = document.createElement('button');
+                btn.className = "h-9 w-9 p-0 rounded-md flex items-center justify-center text-sm hover:bg-accent relative transition-colors";
+                
+                if(isPast) btn.classList.add('text-muted-foreground', 'opacity-50');
+                
+                if(isToday) {
+                    btn.classList.remove('rounded-md');
+                    btn.classList.add('rounded-full', 'bg-primary', 'text-primary-foreground', 'font-bold', 'hover:bg-primary/90');
+                } else if(hasData) {
+                    btn.classList.add('bg-primary/20', 'text-primary', 'font-medium');
+                }
+                
+                btn.textContent = d;
+                btn.onclick = () => openDayDetails(dateStr);
+                grid.appendChild(btn);
+            }
+        }
+
+        function openDayDetails(str) {
+            const d = (appData.history && appData.history[str]) || {tasks:[], rewards:[]};
+            document.getElementById('modalDateTitle').textContent = new Date(str+'T00:00').toLocaleDateString(undefined, {dateStyle:'full'});
+            
+            const tl = document.getElementById('modalTaskList'); tl.innerHTML = '';
+            const rl = document.getElementById('modalRewardList'); rl.innerHTML = '';
+            
+            if(d.tasks && d.tasks.length) { 
+                document.getElementById('noTasksMsg').classList.add('hidden'); 
+                d.tasks.forEach((t, i) => tl.innerHTML += `
+                    <li class="flex items-center justify-between text-sm bg-muted/50 p-2 rounded group">
+                        <span>${t.name}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-600 font-medium">+${formatNumber(t.value)}</span>
+                            <button onclick="deleteHistoryItem('${str}', 'tasks', ${i})" class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" title="Undo"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
+                        </div>
+                    </li>`);
+            } else document.getElementById('noTasksMsg').classList.remove('hidden');
+
+            if(d.rewards && d.rewards.length) { 
+                document.getElementById('noRewardsMsg').classList.add('hidden'); 
+                d.rewards.forEach((r, i) => rl.innerHTML += `
+                    <li class="flex items-center justify-between text-sm bg-muted/50 p-2 rounded group">
+                        <span>${r.name}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-destructive font-medium">-${formatNumber(r.value)}</span>
+                            <button onclick="deleteHistoryItem('${str}', 'rewards', ${i})" class="text-muted-foreground hover:text-destructive opacity-0 group-hover:opacity-100 transition-opacity" title="Undo"><i data-lucide="trash-2" class="h-3.5 w-3.5"></i></button>
+                        </div>
+                    </li>`);
+            } else document.getElementById('noRewardsMsg').classList.remove('hidden');
+            
+            openModal('detailsModal');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
